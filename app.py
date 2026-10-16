@@ -115,6 +115,11 @@ width:52px;height:52px;font-size:18px;cursor:pointer;font-weight:700}
 .err{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.35);color:#fda4b4;
 padding:10px 16px;border-radius:12px;margin-bottom:14px;font-size:13.5px;text-align:center}
 .hintline{text-align:center;color:var(--faint);font-size:11.5px;padding:8px 0 2px}
+#username{background:var(--panel);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;min-height:44px;width:110px;flex:none}
+#username:focus{outline:none;border-color:var(--muted)}
+#username::placeholder{color:var(--faint)}
+.disclaimer{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:0 auto 16px;max-width:720px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.disclaimer b{color:var(--text)}
 @media(max-width:660px){
 .topbar-in{padding:8px 10px;min-height:54px;gap:6px}
 .wordmark{font-size:17px}
@@ -127,6 +132,8 @@ select{font-size:12.5px;padding:8px 8px;max-width:128px}
 .composer{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
 textarea{font-size:16px}
 .hintline{display:none}
+#username{width:84px;font-size:12px;padding:8px 8px}
+.disclaimer{margin:0 12px 12px;font-size:12px;padding:12px 14px}
 }
 @media(max-width:380px){
 select{max-width:110px}
@@ -158,7 +165,8 @@ history.forEach(function(m){
 var d=document.createElement('div');d.className='msg '+(m.role==='user'?'user':'ai');
 var b=document.createElement('div');b.className='bubble';b.textContent=m.content;
 var meta=document.createElement('div');meta.className='meta';
-meta.textContent=(m.role==='user'?'You':modelSel.options[modelSel.selectedIndex].text);
+var uname='';try{uname=store.getItem('stroncius_name')||'';}catch(e){}
+meta.textContent=(m.role==='user'?(uname||'You'):modelSel.options[modelSel.selectedIndex].text);
 d.appendChild(b);d.appendChild(meta);chatEl.appendChild(d);});
 chatEl.scrollTop=chatEl.scrollHeight;}
 function ask(btn){ta.value=btn.textContent;send();}
@@ -192,8 +200,11 @@ ta.addEventListener('keydown',function(e){
 if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 sendBtn.onclick=send;
 document.getElementById('newchat').onclick=function(){
-if(!busy&&confirm('Start a new conversation?')){history=[];save();render();}};
+if(!busy){history=[];save();render();ta.focus();}};
 try{modelSel.value=store.getItem('stroncius_model')||'llama';}catch(e){modelSel.value='llama';}
+var userEl=document.getElementById('username');
+try{userEl.value=store.getItem('stroncius_name')||'';}catch(e){}
+userEl.addEventListener('change',function(){try{store.setItem('stroncius_name',userEl.value.trim());}catch(e){}render();});
 modelSel.onchange=function(){try{store.setItem('stroncius_model',modelSel.value);}catch(e){}};
 render();ta.focus();
 """
@@ -206,10 +217,12 @@ PAGE = ("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>"
         "<div class='topbar'><div class='topbar-in'>"
         "<a class='wordmark' href='/'>Stroncius<span class='dot'>.</span></a>"
         "<span class='badge'>anonymous AI</span><span class='spacer'></span>"
+        "<input id='username' maxlength='24' placeholder='Your name' autocomplete='off'>"
         "<select id='model'><option value='llama'>Llama 3.2 1B</option>"
         "<option value='smol'>SmolLM2 1.7B</option></select>"
         "<button class='newbtn' id='newchat'>New</button>"
         "</div></div>"
+        "<div class='disclaimer'><b>Disclaimer:</b> Stroncius runs on small local AI models. Responses may be inaccurate or incomplete. Do not share sensitive personal information. Conversations are stored only in your browser.</div>"
         "<div id='chat'><div class='empty'><h1>Ask anything.</h1><p>Anonymous AI chat on Tor. No accounts, no logs. Conversations stay in your browser only.</p><div class='suggestions'><button onclick='ask(this)'>Explain Tor in simple terms</button><button onclick='ask(this)'>Write a haiku about privacy</button><button onclick='ask(this)'>Python quicksort example</button></div></div></div><noscript><div class='err' style='max-width:720px;margin:20px auto;'>JavaScript is required for chat. Please enable JavaScript.</div></noscript>"
         "<div class='composer'><div class='composer-in'>"
         "<textarea id='ta' rows='1' placeholder='Ask anything...' maxlength='2000'></textarea>"
