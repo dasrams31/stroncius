@@ -135,6 +135,7 @@ select{max-width:110px}
 """
 
 JS = """
+window.onerror=function(m){var c=document.getElementById('chat');if(c){var e=document.createElement('div');e.className='err';e.textContent='Error: '+m;c.appendChild(e);}};
 var chatEl=document.getElementById('chat'),ta=document.getElementById('ta'),
 sendBtn=document.getElementById('send'),modelSel=document.getElementById('model'),
 busy=false;
@@ -209,7 +210,7 @@ PAGE = ("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>"
         "<option value='smol'>SmolLM2 1.7B</option></select>"
         "<button class='newbtn' id='newchat'>New</button>"
         "</div></div>"
-        "<div id='chat'></div>"
+        "<div id='chat'><div class='empty'><h1>Ask anything.</h1><p>Anonymous AI chat on Tor. No accounts, no logs. Conversations stay in your browser only.</p><div class='suggestions'><button onclick='ask(this)'>Explain Tor in simple terms</button><button onclick='ask(this)'>Write a haiku about privacy</button><button onclick='ask(this)'>Python quicksort example</button></div></div></div><noscript><div class='err' style='max-width:720px;margin:20px auto;'>JavaScript is required for chat. Please enable JavaScript.</div></noscript>"
         "<div class='composer'><div class='composer-in'>"
         "<textarea id='ta' rows='1' placeholder='Ask anything...' maxlength='2000'></textarea>"
         "<button class='sendbtn' id='send'>&uarr;</button>"
