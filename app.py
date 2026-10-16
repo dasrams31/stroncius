@@ -116,10 +116,21 @@ width:52px;height:52px;font-size:18px;cursor:pointer;font-weight:700}
 padding:10px 16px;border-radius:12px;margin-bottom:14px;font-size:13.5px;text-align:center}
 .hintline{text-align:center;color:var(--faint);font-size:11.5px;padding:8px 0 2px}
 @media(max-width:660px){
-.topbar-in{padding:8px 12px;min-height:54px}
+.topbar-in{padding:8px 10px;min-height:54px;gap:6px}
+.wordmark{font-size:17px}
+.badge{display:none}
+select{font-size:12.5px;padding:8px 8px;max-width:128px}
+.newbtn{padding:8px 12px;font-size:12.5px}
 #chat{padding:14px 12px}
 .msg{max-width:94%}
+.msg .bubble{font-size:14px;padding:11px 14px}
 .composer{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+textarea{font-size:16px}
+.hintline{display:none}
+}
+@media(max-width:380px){
+select{max-width:110px}
+.wordmark{font-size:16px}
 }
 """
 
@@ -127,8 +138,10 @@ JS = """
 var chatEl=document.getElementById('chat'),ta=document.getElementById('ta'),
 sendBtn=document.getElementById('send'),modelSel=document.getElementById('model'),
 busy=false;
-var history=JSON.parse(localStorage.getItem('stroncius_history')||'[]');
-function save(){try{localStorage.setItem('stroncius_history',JSON.stringify(history.slice(-40)));}catch(e){}}
+var store=(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return localStorage;}catch(e){
+var m={};return{getItem:function(k){return m[k]||null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];}};}})();
+var history=[];try{history=JSON.parse(store.getItem('stroncius_history')||'[]');}catch(e){history=[];}
+function save(){try{store.setItem('stroncius_history',JSON.stringify(history.slice(-40)));}catch(e){}}
 function render(){
 chatEl.innerHTML='';
 if(!history.length){
@@ -169,7 +182,7 @@ document.getElementById('typing').remove();
 if(r.s===200&&r.j.reply){history.push({role:'assistant',content:r.j.reply});}
 else{showErr(r.j.error||'Something went wrong. Try again.');}
 save();render();})
-.catch(function(){document.getElementById('typing');var t=document.getElementById('typing');if(t)t.remove();
+.catch(function(){var t=document.getElementById('typing');if(t)t.remove();
 showErr('Connection failed. Try again.');})
 .finally(function(){busy=false;sendBtn.disabled=false;ta.focus();});}
 ta.addEventListener('input',function(){ta.style.height='auto';
@@ -179,8 +192,8 @@ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 sendBtn.onclick=send;
 document.getElementById('newchat').onclick=function(){
 if(!busy&&confirm('Start a new conversation?')){history=[];save();render();}};
-modelSel.value=localStorage.getItem('stroncius_model')||'llama';
-modelSel.onchange=function(){localStorage.setItem('stroncius_model',modelSel.value);};
+try{modelSel.value=store.getItem('stroncius_model')||'llama';}catch(e){modelSel.value='llama';}
+modelSel.onchange=function(){try{store.setItem('stroncius_model',modelSel.value);}catch(e){}};
 render();ta.focus();
 """
 
