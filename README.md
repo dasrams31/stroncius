@@ -1,4 +1,4 @@
-# Oracle
+# Stroncius
 
 Anonymous AI chat on Tor. No accounts, no server-side logs.
 

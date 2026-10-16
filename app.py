@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Oracle - anonymous AI chat on Tor.
+"""Stroncius - anonymous AI chat on Tor.
 
 Python stdlib only. No accounts, no server-side history.
 Proxies to local llama.cpp servers (OpenAI-compatible API).
@@ -23,7 +23,7 @@ MODELS = {
     "smol": {"name": "SmolLM2 1.7B", "url": "http://127.0.0.1:18091/v1/chat/completions"},
 }
 
-SYSTEM_PROMPT = ("You are Oracle, a helpful AI assistant running on a small "
+SYSTEM_PROMPT = ("You are Stroncius, a helpful AI assistant running on a small "
                  "local model inside the Tor network. Be concise and direct. "
                  "Answer in the same language the user writes in.")
 
@@ -127,8 +127,8 @@ JS = """
 var chatEl=document.getElementById('chat'),ta=document.getElementById('ta'),
 sendBtn=document.getElementById('send'),modelSel=document.getElementById('model'),
 busy=false;
-var history=JSON.parse(localStorage.getItem('oracle_history')||'[]');
-function save(){try{localStorage.setItem('oracle_history',JSON.stringify(history.slice(-40)));}catch(e){}}
+var history=JSON.parse(localStorage.getItem('stroncius_history')||'[]');
+function save(){try{localStorage.setItem('stroncius_history',JSON.stringify(history.slice(-40)));}catch(e){}}
 function render(){
 chatEl.innerHTML='';
 if(!history.length){
@@ -179,18 +179,18 @@ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 sendBtn.onclick=send;
 document.getElementById('newchat').onclick=function(){
 if(!busy&&confirm('Start a new conversation?')){history=[];save();render();}};
-modelSel.value=localStorage.getItem('oracle_model')||'llama';
-modelSel.onchange=function(){localStorage.setItem('oracle_model',modelSel.value);};
+modelSel.value=localStorage.getItem('stroncius_model')||'llama';
+modelSel.onchange=function(){localStorage.setItem('stroncius_model',modelSel.value);};
 render();ta.focus();
 """
 
 PAGE = ("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>"
         "<meta name='description' content='Anonymous AI chat on Tor. No accounts, no logs.'>"
-        "<title>Oracle - Anonymous AI chat</title><style>" + CSS + "</style></head>"
+        "<title>Stroncius - Anonymous AI chat</title><style>" + CSS + "</style></head>"
         "<body>"
         "<div class='topbar'><div class='topbar-in'>"
-        "<a class='wordmark' href='/'>Oracle<span class='dot'>.</span></a>"
+        "<a class='wordmark' href='/'>Stroncius<span class='dot'>.</span></a>"
         "<span class='badge'>anonymous AI</span><span class='spacer'></span>"
         "<select id='model'><option value='llama'>Llama 3.2 1B</option>"
         "<option value='smol'>SmolLM2 1.7B</option></select>"
@@ -205,7 +205,7 @@ PAGE = ("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>"
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Oracle/1.0"
+    server_version = "Stroncius/1.0"
     protocol_version = "HTTP/1.1"
 
     def client_ip(self):
@@ -304,7 +304,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print("Oracle on 127.0.0.1:%d" % PORT, flush=True)
+    print("Stroncius on 127.0.0.1:%d" % PORT, flush=True)
     srv.serve_forever()
 
 
