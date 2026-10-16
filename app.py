@@ -115,9 +115,20 @@ width:52px;height:52px;font-size:18px;cursor:pointer;font-weight:700}
 .err{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.35);color:#fda4b4;
 padding:10px 16px;border-radius:12px;margin-bottom:14px;font-size:13.5px;text-align:center}
 .hintline{text-align:center;color:var(--faint);font-size:11.5px;padding:8px 0 2px}
-#username{background:var(--panel);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;min-height:44px;width:110px;flex:none}
-#username:focus{outline:none;border-color:var(--muted)}
-#username::placeholder{color:var(--faint)}
+#profilebtn{font-size:20px;padding:9px 14px}
+.popup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.popup-overlay.open{display:flex}
+.popup{background:var(--panel2);border:1px solid var(--border2);border-radius:18px;padding:24px;width:100%;max-width:340px}
+.popup h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.popup p{font-size:13px;color:var(--muted);margin-bottom:16px}
+.popup input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:12px;padding:13px 16px;color:var(--text);font-size:16px;font-family:inherit;min-height:52px;margin-bottom:12px}
+.popup input:focus{outline:none;border-color:var(--muted)}
+.popup .row{display:flex;gap:10px}
+.popup .row button{flex:1;border-radius:12px;padding:13px;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;min-height:50px}
+.popup .save{background:var(--text);color:#0d0d0e;border:none}
+.popup .cancel{background:transparent;border:1px solid var(--border2);color:var(--text)}
+
+
 .disclaimer{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:0 auto 16px;max-width:720px;font-size:12.5px;color:var(--muted);line-height:1.5}
 .disclaimer b{color:var(--text)}
 @media(max-width:660px){
@@ -132,7 +143,6 @@ select{font-size:12.5px;padding:8px 8px;max-width:128px}
 .composer{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
 textarea{font-size:16px}
 .hintline{display:none}
-#username{width:84px;font-size:12px;padding:8px 8px}
 .disclaimer{margin:0 12px 12px;font-size:12px;padding:12px 14px}
 }
 @media(max-width:380px){
@@ -148,7 +158,7 @@ sendBtn=document.getElementById('send'),modelSel=document.getElementById('model'
 busy=false;
 var store=(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return localStorage;}catch(e){
 var m={};return{getItem:function(k){return m[k]||null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];}};}})();
-var history=[];try{history=JSON.parse(store.getItem('stroncius_history')||'[]');}catch(e){history=[];}
+var history=[];try{history=JSON.parse(store.getItem('stroncius_history')||'[]');if(!Array.isArray(history))history=[];}catch(e){history=[];}
 function save(){try{store.setItem('stroncius_history',JSON.stringify(history.slice(-40)));}catch(e){}}
 function render(){
 chatEl.innerHTML='';
@@ -202,9 +212,13 @@ sendBtn.onclick=send;
 document.getElementById('newchat').onclick=function(){
 if(!busy){history=[];save();render();ta.focus();}};
 try{modelSel.value=store.getItem('stroncius_model')||'llama';}catch(e){modelSel.value='llama';}
-var userEl=document.getElementById('username');
+var popup=document.getElementById('popup'),userEl=document.getElementById('username');
 try{userEl.value=store.getItem('stroncius_name')||'';}catch(e){}
-userEl.addEventListener('change',function(){try{store.setItem('stroncius_name',userEl.value.trim());}catch(e){}render();});
+document.getElementById('profilebtn').onclick=function(){popup.classList.add('open');setTimeout(function(){userEl.focus();},100);};
+document.getElementById('popupcancel').onclick=function(){popup.classList.remove('open');};
+popup.addEventListener('click',function(e){if(e.target===popup)popup.classList.remove('open');});
+document.getElementById('popsave').onclick=function(){try{store.setItem('stroncius_name',userEl.value.trim().slice(0,24));}catch(e){}popup.classList.remove('open');render();};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')popup.classList.remove('open');});
 modelSel.onchange=function(){try{store.setItem('stroncius_model',modelSel.value);}catch(e){}};
 render();ta.focus();
 """
@@ -217,13 +231,20 @@ PAGE = ("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>"
         "<div class='topbar'><div class='topbar-in'>"
         "<a class='wordmark' href='/'>Stroncius<span class='dot'>.</span></a>"
         "<span class='badge'>anonymous AI</span><span class='spacer'></span>"
-        "<input id='username' maxlength='24' placeholder='Your name' autocomplete='off'>"
+        "<button class='newbtn' id='profilebtn' title='Set your name'>&#9786;</button>"
         "<select id='model'><option value='llama'>Llama 3.2 1B</option>"
         "<option value='smol'>SmolLM2 1.7B</option></select>"
         "<button class='newbtn' id='newchat'>New</button>"
         "</div></div>"
         "<div class='disclaimer'><b>Disclaimer:</b> Stroncius runs on small local AI models. Responses may be inaccurate or incomplete. Do not share sensitive personal information. Conversations are stored only in your browser.<br><span style='font-size:11px;opacity:.75'>Donate: <code style='font-size:10px'>0x62A098898048c79FF14De07F3BE9310398E5eCF8</code></span></div>"
         "<div id='chat'><div class='empty'><h1>Ask anything.</h1><p>Anonymous AI chat on Tor. No accounts, no logs. Conversations stay in your browser only.</p><div class='suggestions'><button onclick='ask(this)'>Explain Tor in simple terms</button><button onclick='ask(this)'>Write a haiku about privacy</button><button onclick='ask(this)'>Python quicksort example</button></div></div></div><noscript><div class='err' style='max-width:720px;margin:20px auto;'>JavaScript is required for chat. Please enable JavaScript.</div></noscript>"
+        "<div class='popup-overlay' id='popup'><div class='popup'>"
+        "<h3>Your display name</h3>"
+        "<p>Shown next to your messages. Stored only in your browser.</p>"
+        "<input id='username' maxlength='24' placeholder='Enter your name' autocomplete='off'>"
+        "<div class='row'><button class='cancel' id='popupcancel'>Cancel</button>"
+        "<button class='save' id='popsave'>Save</button></div>"
+        "</div></div>"
         "<div class='composer'><div class='composer-in'>"
         "<textarea id='ta' rows='1' placeholder='Ask anything...' maxlength='2000'></textarea>"
         "<button class='sendbtn' id='send'>&uarr;</button>"
